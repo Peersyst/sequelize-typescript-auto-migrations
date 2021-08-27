@@ -9,6 +9,7 @@
     "sequelize-ts": "./dist/bin/sequelize-ts.js"
   },
   "scripts": {
+    "prepare": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc"
   },
