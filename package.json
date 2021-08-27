@@ -2,11 +2,11 @@
   "name": "sequelize-typescript-auto-migrations",
   "version": "0.0.2",
   "description": "Sequelize migrations generator && runner for sequelize-typescript",
-  "main": "dist/index.js",
+  "main": "bin/sequelize-ts",
   "types": "dist/index.d.ts",
   "private": false,
   "bin": {
-    "sequelize-ts": "./dist/bin/sequelize-ts.js"
+    "sequelize-ts": "bin/sequelize-ts"
   },
   "scripts": {
     "prepare": "npm run build",

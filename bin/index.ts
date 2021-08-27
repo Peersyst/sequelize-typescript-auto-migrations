@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import "reflect-metadata";
 import * as createCommand from "./cmds/create";
 import * as runCommand from "./cmds/run";
