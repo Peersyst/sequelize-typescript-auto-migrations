@@ -808,13 +808,13 @@ ${_commandsDown}
 const executeMigration =
     (commands) =>
     async (sequelize: SequelizeJs): Promise<void> => {
-        sequelize.query("SET FOREIGN_KEY_CHECKS = 0;");
+        await sequelize.query("SET FOREIGN_KEY_CHECKS = 0;");
         let i = 1;
         for (const command of commands) {
             console.log("[#" + i++ + "] execute: " + command.fn);
             await sequelize.getQueryInterface()[command.fn](...command.params);
         }
-        sequelize.query("SET FOREIGN_KEY_CHECKS = 1;");
+        await sequelize.query("SET FOREIGN_KEY_CHECKS = 1;");
     };
 
 export const up = executeMigration(migrationCommandsUp);
