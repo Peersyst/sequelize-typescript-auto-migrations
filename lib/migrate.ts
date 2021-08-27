@@ -805,22 +805,20 @@ ${_commandsUp}
 
 ${_commandsDown}
 
-export const up = async (sequelize: SequelizeJs): Promise<void> => {
-    let i = 0;
-    for (const command of migrationCommandsUp) {
-        console.log("[#" + i++ + "] execute: " + command.fn);
-        await sequelize.getQueryInterface()[command.fn](...command.params);
-    }
-};
+const executeMigration =
+    (commands) =>
+    async (sequelize: SequelizeJs): Promise<void> => {
+        sequelize.query("SET FOREIGN_KEY_CHECKS = 0;");
+        let i = 1;
+        for (const command of commands) {
+            console.log("[#" + i++ + "] execute: " + command.fn);
+            await sequelize.getQueryInterface()[command.fn](...command.params);
+        }
+        sequelize.query("SET FOREIGN_KEY_CHECKS = 1;");
+    };
 
-export const down = async (sequelize: SequelizeJs): Promise<void> => {
-    let i = 0;
-    for (const command of migrationCommandsDown) {
-        console.log("[#" + i++ + "] execute: " + command.fn);
-        await sequelize.getQueryInterface()[command.fn](...command.params);
-    }
-};
-
+export const up = executeMigration(migrationCommandsUp);
+export const down = executeMigration(migrationCommandsDown);
 `;
 
     name = name.replace(" ", "_");
