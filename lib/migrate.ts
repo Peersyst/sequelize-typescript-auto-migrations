@@ -777,8 +777,8 @@ export function writeMigration(
         "const migrationCommandsDown = [ \n" +
         migrationDown.commands.join(", \n") +
         " \n];\n";
-    let _actions = " * Up: \n * " + migrationUp.consoleOut.join("\n * ") +
-        "\n *\n * Down: \n * " + migrationDown.consoleOut.join("\n * ");
+    let _actions = " * Up:\n * " + migrationUp.consoleOut.join("\n * ") +
+        "\n *\n * Down:\n * " + migrationDown.consoleOut.join("\n * ");
 
     _commandsUp = js_beautify(_commandsUp);
     _commandsDown = js_beautify(_commandsDown);
@@ -789,9 +789,8 @@ export function writeMigration(
         comment,
     };
 
-    let template = `'use strict';
-
-import Sequelize, { DataType } from "sequelize-typescript";
+    let template = `import Sequelize, { DataType } from "sequelize-typescript";
+import { Sequelize as SequelizeJs } from "sequelize";
 
 /**
  * Actions summary:
@@ -806,45 +805,22 @@ ${_commandsUp}
 
 ${_commandsDown}
 
-export const up = (queryInterface, Sequelize, pos = 0) =>  {
-    let index = pos;
-    return new Promise<void>(function(resolve, reject) {
-        function next() {
-            if (index < migrationCommandsUp.length) {
-                const command = migrationCommandsUp[index];
-                console.log("[#" + index + "] execute: " + command.fn);
-                index++;
-        
-                queryInterface[command.fn]
-                    .apply(queryInterface, command.params)
-                    .then(next, reject);
-            } else {
-                resolve();
-            }
-        }
-        next();
-    });
+export const up = async (sequelize: SequelizeJs): Promise<void> => {
+    let i = 0;
+    for (const command of migrationCommandsUp) {
+        console.log("[#" + i++ + "] execute: " + command.fn);
+        await sequelize.getQueryInterface()[command.fn](...command.params);
+    }
 };
 
-export const down = (queryInterface, Sequelize, pos = 0) =>  {
-    let index = pos;
-    return new Promise<void>(function(resolve, reject) {
-        function next() {
-            if (index < migrationCommandsDown.length) {
-                const command = migrationCommandsDown[index];
-                console.log("[#" + index + "] execute: " + command.fn);
-                index++;
-
-                queryInterface[command.fn]
-                    .apply(queryInterface, command.params)
-                    .then(next, reject);
-            } else {
-                resolve();
-            }
-        }
-        next();
-    });
+export const down = async (sequelize: SequelizeJs): Promise<void> => {
+    let i = 0;
+    for (const command of migrationCommandsDown) {
+        console.log("[#" + i++ + "] execute: " + command.fn);
+        await sequelize.getQueryInterface()[command.fn](...command.params);
+    }
 };
+
 `;
 
     name = name.replace(" ", "_");
