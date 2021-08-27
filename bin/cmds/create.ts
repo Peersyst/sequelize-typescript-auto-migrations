@@ -11,7 +11,7 @@ import {
   sortActions,
   writeMigration,
 } from "../../lib/migrate";
-import { each, uniqueId } from "lodash";
+import _, { each, uniqueId } from "lodash";
 import { importSequelizeModel } from "../../lib/import";
 import { build } from "../../lib/options";
 import { BaseOptions } from "../../lib/types";
@@ -111,27 +111,36 @@ export const handler = async (args: CreateOptions) => {
 
   currentState.tables = reverseModels(sequelize, models);
 
-  let actions = parseDifference(previousState.tables, currentState.tables);
+  let unsortedActionsUp = parseDifference(_.cloneDeep(previousState.tables), _.cloneDeep(currentState.tables));
+  const actionsUp = sortActions(unsortedActionsUp);
+  let migrationUp = getMigration(actionsUp);
 
-  // sort actions
-  sortActions(actions);
-
-  let migration = getMigration(actions);
-
-  if (migration.commandsUp.length === 0) {
+  if (migrationUp.commands.length === 0) {
     console.log("No changes found");
     process.exit(0);
   }
 
+  let unsortedActionsDown = parseDifference(_.cloneDeep(currentState.tables), _.cloneDeep(previousState.tables));
+  const actionsDown = sortActions(unsortedActionsDown);
+  let migrationDown = getMigration(actionsDown);
+
   // log migration actions
-  each(migration.consoleOut, (v) => {
-    console.log("[Actions] " + v);
+  each(migrationUp.consoleOut, (v) => {
+    console.log("[Actions up] " + v);
+  });
+  each(migrationDown.consoleOut, (v) => {
+    console.log("[Actions down] " + v);
   });
 
   if (args.preview) {
     console.log("Migration result:");
+    console.log("Up commands:");
     console.log(
-      js_beautify("[ \n" + migration.commandsUp.join(", \n") + " \n];\n")
+      js_beautify("[ \n" + migrationUp.commands.join(", \n") + " \n];\n")
+    );
+    console.log("Down commands:");
+    console.log(
+      js_beautify("[ \n" + migrationDown.commands.join(", \n") + " \n];\n")
     );
     process.exit(0);
   }
@@ -154,7 +163,8 @@ export const handler = async (args: CreateOptions) => {
   // write migration to file
   let info = writeMigration(
     currentState.revision.toString().padStart(4, "0"),
-    migration,
+    migrationUp,
+    migrationDown,
     options.migrationsDirectory,
     args.name ? args.name : "noname",
     args.comment ? args.comment : ""
