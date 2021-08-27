@@ -153,7 +153,7 @@ export const handler = async (args: CreateOptions) => {
 
   // write migration to file
   let info = writeMigration(
-    currentState.revision,
+    currentState.revision.toString().padStart(4, "0"),
     migration,
     options.migrationsDirectory,
     args.name ? args.name : "noname",
